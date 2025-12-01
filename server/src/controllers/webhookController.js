@@ -31,17 +31,16 @@ exports.handleWebhook = async (req, res) => {
 
       if (tableChanges) {
         //update
-        if (tableChanges.changedRecords) {
+        if (tableChanges.changedRecordsById) {
           const fieldMap = {};
           form.questions.forEach((q) => {
             fieldMap[q.airtableFieldId] = q.questionKey;
           });
 
           for (const [recordId, change] of Object.entries(
-            tableChanges.changedRecords
+            tableChanges.changedRecordsById
           )) {
-            constQlValues = change.current?.cellValuesByFieldId;
-
+            const cellValues = change.current?.cellValuesByFieldId;
             if (cellValues) {
               const response = await Response.findOne({
                 airtableRecordId: recordId,
@@ -58,7 +57,6 @@ exports.handleWebhook = async (req, res) => {
                 if (updated) {
                   response.markModified("answers");
                   await response.save();
-                  console.log(`Synced update for record: ${recordId}`);
                 }
               }
             }
@@ -66,13 +64,12 @@ exports.handleWebhook = async (req, res) => {
         }
 
         //delete
-        if (tableChanges.destroyedRecords) {
-          for (const recordId of tableChanges.destroyedRecords) {
+        if (tableChanges.destroyedRecordIds) {
+          for (const recordId of tableChanges.destroyedRecordIds) {
             await Response.findOneAndUpdate(
               { airtableRecordId: recordId },
               { status: "deletedInAirtable" }
             );
-            console.log(`Marked as deleted: ${recordId}`);
           }
         }
       }
