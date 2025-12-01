@@ -59,13 +59,29 @@ exports.createForm = async (req, res) => {
     
     const client = await getAirtableClient(req.user.id);
     let webhookId = null;
+
+    try {
+      const listHooksRes = await client.get(`https://api.airtable.com/v0/bases/${baseId}/webhooks`);
+      const existingHooks = listHooksRes.data.webhooks;
+
+      if (existingHooks && existingHooks.length >= 1) {
+        for (const hook of existingHooks) {
+          await client.delete(`https://api.airtable.com/v0/bases/${baseId}/webhooks/${hook.id}`);
+        }
+      }
+    } catch (cleanupErr) {
+      console.log("Warning: Could not list/delete old webhooks.");
+    }
+
     try {
       const hookRes = await client.post(`https://api.airtable.com/v0/bases/${baseId}/webhooks`, {
-        notificationUrl: `${process.env.CLIENT_URL}/api/webhooks/airtable`, 
-        specification: { options: { filters: { dataTypes: ['tableData'], recordChangeScope: tableId } } }
+        notificationUrl: `${process.env.SERVER_URL}/api/webhooks/airtable`,
+        specification: { options: { filters: { dataTypes: ['tableData'] } } } 
       });
       webhookId = hookRes.data.id;
-    } catch (e) { console.log("Webhook creation skipped (requires public URL)"); }
+    } catch (e) { 
+      console.error("Webhook Failed Details:", e.response?.data || e.message);
+    }
 
     const form = await Form.create({
       owner: req.user.id,
