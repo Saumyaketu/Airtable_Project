@@ -77,7 +77,9 @@ AIRTABLE_CLIENT_SECRET=your_airtable_client_secret
 AIRTABLE_REDIRECT_URI=http://localhost:5173/auth/callback
 
 # Use ngrok for local testing of webhooks
-CLIENT_URL=http://localhost:5000 
+CLIENT_URL=http://localhost:5173 
+
+SERVER_URL=http://localhost:5000 
 ```
 
 Start the server:
@@ -209,6 +211,9 @@ Webhooks cannot reach `localhost`. To test webhooks locally, use **[ngrok](https
 
 **Form-Viewer:**
 ![Form-Viewer](image-1.png)
+
+**Form-Viewer-2:**
+![Form-Viewer-2](image-4.png)
 
 **Form-Builder-1:**
 ![Form-Builder-1](image-2.png)
